@@ -75,33 +75,33 @@ exports.logoutAdmin = async (req, res) => {
     })
 }
 // Forget Password Otp 
-// exports.forgetPasswordAdmin = async (req, res) => {
-//     let data = await adminModel.findOne({
-//         email: req.body.email
-//     });
-//     const responseType = {};
-//     responseType.data = data
-//     console.log(data)
-//     if (data) {
-//         let otpcode = Math.floor((Math.random() * 10000) + 1);
-//         let otpData = new forgetPasswordModel({
-//             _id: mongoose.Types.ObjectId(),
-//             email: req.body.email,
-//             code: otpcode,
-//             expiresIn: new Date().getTime() + 300 * 1000
-//         })
-//         let otpResponse = await otpData.save();
-//         responseType.statusText = 'Success'
-//         mailer(req.body.email, otpcode)
-//         console.log(otpcode)
-//         responseType.message = 'Please check Your Email Id';
-//         responseType.otp = otpcode;
-//     } else {
-//         responseType.statusText = 'error'
-//         responseType.message = 'Email Id not Exist';
-//     }
-//     res.status(200).json(responseType)
-// }
+exports.forgetPasswordAdmin = async (req, res) => {
+    let data = await adminModel.findOne({
+        email: req.body.email
+    });
+    const responseType = {};
+    responseType.data = data
+    console.log(data)
+    if (data) {
+        let otpcode = Math.floor((Math.random() * 10000) + 1);
+        // let otpData = new forgetPasswordModel({
+        //     _id: mongoose.Types.ObjectId(),
+        //     email: req.body.email,
+        //     code: otpcode,
+        //     expiresIn: new Date().getTime() + 300 * 1000
+        // })
+        // let otpResponse = await otpData.save();
+        responseType.statusText = 'Success'
+        mailer(req.body.email, otpcode)
+        console.log(otpcode)
+        responseType.message = 'Please check Your Email Id';
+        responseType.otp = otpcode;
+    } else {
+        responseType.statusText = 'error'
+        responseType.message = 'Email Id not Exist';
+    }
+    res.status(200).json(responseType)
+}
 // OTP TWILIO 
 const mailer = (email, otp) => {
     var transporter = nodemailer.createTransport({

@@ -3,7 +3,10 @@ const userSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     email: String,
     password: String,
-    isLogin:Boolean
+    isLogin:Boolean,
+    // subscription_plan:{
+
+    // }
 }
 );
 module.exports = mongoose.model("user", userSchema);
