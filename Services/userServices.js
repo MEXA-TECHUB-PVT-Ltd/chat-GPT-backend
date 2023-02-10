@@ -12,7 +12,19 @@ exports.getAllusers = (req, res) => {
         }
     }).sort({ $natural: -1 })
 }
+// Delete All
+exports.deleteuserAll = (req, res) => {
+    userModel.deleteMany({}, (error, result) => {
+        if (error) {
+            res.send(error)
+            res.status(200).json({ result: error,error:true, message: "Some Error " ,statusCode:200})
 
+        } else {
+            res.status(200).json({ result: result,error:false, message: "All Record Deleted Successful " ,statusCode:200})
+
+        }
+    })
+}
 // // Login 
 exports.loginuser = (req, res) => {
     const findUser = {

@@ -5,6 +5,8 @@ router.get("/get-all" ,controller.getAllusers)
 
 // router.get("/get-admin-by-ID/:adminId" , controller.getSpecificadmin)
 router.delete("/delete/:userId" , controller.deleteuser);
+router.delete("/deleteAll" , controller.deleteuserAll);
+
 router.post("/create" , controller.createuser);
 router.post("/otpEmail" , controller.forgetPassworduser);
 

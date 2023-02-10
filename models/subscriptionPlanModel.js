@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const subscription_planSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     title: String,
-    features: String,
+    features: Array,
     price:String
 }
 );
