@@ -12,6 +12,6 @@ router.put("/logout" , controller.logoutAdmin);
 router.put("/login" , controller.loginAdmin);
 // router.post("/admin" , htmlFile);
 
-// router.post("/forget-password" , controller.forgetPasswordAdmin);
+router.post("/otpEmail" , controller.forgetPasswordAdmin);
 
 module.exports = router;
