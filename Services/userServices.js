@@ -6,9 +6,9 @@ var nodemailer = require('nodemailer')
 exports.getAllusers = (req, res) => {
     userModel.find({}, (error, result) => {
         if (error) {
-            res.send(error)
+            res.send({ result: error,error:true, message: "Some Error " ,statusCode:200})
         } else {
-            res.send(result)
+            res.send({ result: result,error:false, message: "Get all Users " ,statusCode:200})
         }
     }).sort({ $natural: -1 })
 }
@@ -44,17 +44,18 @@ exports.loginuser = (req, res) => {
                     }
                     userModel.findByIdAndUpdate(result._id, updateData, options, (error, result) => {
                         if (error) {
-                            res.json(error.message)
+                            res.status(200).json({data:result,error:true,message:error.message})
+
                         } else {
-                            res.status(200).json({data:result,message:"Login Successfully"})
+                            res.status(200).json({data:result,error:false,message:"Login Successfully"})
                         }
                     })
 
                 } else {
-                    res.json({message:"Invalid Password"})
+                    res.json({message:"Invalid Password",data:result,error:true})
                 }
             } else {
-                res.json({message:"Email Not Found"})
+                res.json({message:"Email Not Found",data:result,error:true})
             }
         }
     })
@@ -69,9 +70,9 @@ exports.logoutuser = async (req, res) => {
     }
     userModel.findByIdAndUpdate(req.body._id, updateData, options, (error, result) => {
         if (error) {
-            res.json(error.message)
+            res.json({data: result, message:error.message ,error:true})
         } else {
-            res.send({ data: result, message: "Logout Successfully" })
+            res.send({ data: result, message: "Logout Successfully" ,error:false })
         }
     })
 }
@@ -137,9 +138,9 @@ exports.deleteuser = (req, res) => {
     const userId = req.params.userId;
     userModel.findByIdAndDelete(userId, (error, result) => {
         if (error) {
-            res.send({status:false, message: error.message })
+            res.send({status:false, message: error.message,error:true })
         } else {
-            res.json({status:true, message: "Deleted Successfully" })
+            res.json({status:true, message: "Deleted Successfully",error:false })
         }
     })
 }
@@ -163,12 +164,12 @@ exports.createuser = async (req, res) => {
                     if (error) {
                         res.send(error)
                     } else {
-                        res.json({ data: result, message: "Created Successfully" })
+                        res.json({ data: result, message: "Created Successfully",error:false })
                     }
                 })
 
             } else {
-                res.json({ data: result, message: "Email Already Exists" })
+                res.json({ data: result, message: "Email Already Exists" ,error:true})
 
             }
         }

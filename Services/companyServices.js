@@ -5,9 +5,9 @@ const mongoose = require("mongoose");
 exports.getAllcompanys = (req, res) => {
     companyModel.find({}, (error, result) => {
         if (error) {
-            res.send(error)
+            res.send({ result: error,error:true, message: "Error" ,statusCode:200})
         } else {
-            res.send(result)
+            res.send({ result: result,error:false, message: "Get Data Successfully" ,statusCode:200})
         }
     }).sort({ $natural: -1 })
 }
