@@ -6,9 +6,9 @@ const roomModel = require("../models/roomModel");
 exports.getAllMsgRooms = (req, res) => {
     MsgRoomModel.find({}, (error, result) => {
         if (error) {
-            res.send(error)
+            res.send({ result: error,error:true, message: "Some Error " ,statusCode:200})
         } else {
-            res.send(result)
+            res.send({ result: result,error:false, message: "Successfully get all " ,statusCode:200})
         }
     }).sort({ $natural: -1 })
 }
