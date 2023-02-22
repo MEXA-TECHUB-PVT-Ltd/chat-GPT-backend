@@ -8,5 +8,6 @@ router.post("/create" , controller.createroom);
 router.put("/update" , controller.updateroom);
 router.delete("/deleteAll" , controller.deleteroomAll);
 router.post("/get-room-by-user-id" ,controller.getroomByUserId)
+router.delete("/deleteAllByUserId" ,controller.deleteroomAllByUserId)
 
 module.exports = router;

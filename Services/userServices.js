@@ -6,9 +6,9 @@ var nodemailer = require('nodemailer')
 exports.getAllusers = (req, res) => {
     userModel.find({}, (error, result) => {
         if (error) {
-            res.send({ result: error,error:true, message: "Some Error " ,statusCode:200})
+            res.send({ result: error, error: true, message: "Some Error ", statusCode: 200 })
         } else {
-            res.send({ result: result,error:false, message: "Get all Users " ,statusCode:200})
+            res.send({ result: result, error: false, message: "Get all Users ", statusCode: 200 })
         }
     }).sort({ $natural: -1 })
 }
@@ -17,10 +17,10 @@ exports.deleteuserAll = (req, res) => {
     userModel.deleteMany({}, (error, result) => {
         if (error) {
             res.send(error)
-            res.status(200).json({ result: error,error:true, message: "Some Error " ,statusCode:200})
+            res.status(200).json({ result: error, error: true, message: "Some Error ", statusCode: 200 })
 
         } else {
-            res.status(200).json({ result: result,error:false, message: "All Record Deleted Successful " ,statusCode:200})
+            res.status(200).json({ result: result, error: false, message: "All Record Deleted Successful ", statusCode: 200 })
 
         }
     })
@@ -37,25 +37,57 @@ exports.loginuser = (req, res) => {
             if (result) {
                 if (bcrypt.compareSync(req.body.password, result.password)) {
                     const updateData = {
-                        isLogin:true
+                        isLogin: true
                     }
                     const options = {
                         new: true
                     }
                     userModel.findByIdAndUpdate(result._id, updateData, options, (error, result) => {
                         if (error) {
-                            res.status(200).json({data:result,error:true,message:error.message})
+                            res.status(200).json({ data: result, error: true, message: error.message })
 
                         } else {
-                            res.status(200).json({data:result,error:false,message:"Login Successfully"})
+                            res.status(200).json({ data: result, error: false, message: "Login Successfully" })
                         }
                     })
 
                 } else {
-                    res.json({message:"Invalid Password",data:result,error:true})
+                    res.json({ message: "Invalid Password", data: result, error: true })
                 }
             } else {
-                res.json({message:"Email Not Found",data:result,error:true})
+                res.json({ message: "Email Not Found", data: result, error: true })
+            }
+        }
+    })
+}
+// // Verify User Profile 
+exports.verifyProfile = (req, res) => {
+    const findUser = {
+        email: req.body.email
+    }
+    userModel.findOne(findUser, (error, result) => {
+        if (error) {
+            res.json(error)
+        } else {
+            if (result) {
+                const updateData = {
+                    verified_status: req.body.verified_status
+                }
+                const options = {
+                    new: true
+                }
+                userModel.findByIdAndUpdate(result._id, updateData, options, (error, result) => {
+                    if (error) {
+                        res.status(200).json({ data: result, error: true, message: error.message })
+
+                    } else {
+                        res.status(200).json({ data: result, error: false, message: "Login Successfully" })
+                    }
+                })
+
+
+            } else {
+                res.json({ message: "Email Not Found", data: result, error: true })
             }
         }
     })
@@ -70,9 +102,9 @@ exports.logoutuser = async (req, res) => {
     }
     userModel.findByIdAndUpdate(req.body._id, updateData, options, (error, result) => {
         if (error) {
-            res.json({data: result, message:error.message ,error:true})
+            res.json({ data: result, message: error.message, error: true })
         } else {
-            res.send({ data: result, message: "Logout Successfully" ,error:false })
+            res.send({ data: result, message: "Logout Successfully", error: false })
         }
     })
 }
@@ -138,9 +170,9 @@ exports.deleteuser = (req, res) => {
     const userId = req.params.userId;
     userModel.findByIdAndDelete(userId, (error, result) => {
         if (error) {
-            res.send({status:false, message: error.message,error:true })
+            res.send({ status: false, message: error.message, error: true })
         } else {
-            res.json({status:true, message: "Deleted Successfully",error:false })
+            res.json({ status: true, message: "Deleted Successfully", error: false })
         }
     })
 }
@@ -158,18 +190,20 @@ exports.createuser = async (req, res) => {
                     _id: mongoose.Types.ObjectId(),
                     email: req.body.email,
                     password: hashedPassword,
+                    isLogin: false,
+                    verified_status: false,
 
                 });
                 user.save((error, result) => {
                     if (error) {
                         res.send(error)
                     } else {
-                        res.json({ data: result, message: "Created Successfully",error:false })
+                        res.json({ data: result, message: "Created Successfully", error: false })
                     }
                 })
 
             } else {
-                res.json({ data: result, message: "Email Already Exists" ,error:true})
+                res.json({ data: result, message: "Email Already Exists", error: true })
 
             }
         }
@@ -178,22 +212,69 @@ exports.createuser = async (req, res) => {
 }
 // Update 
 exports.updateuser = async (req, res) => {
-    const hashedPassword = bcrypt.hashSync(req.body.password, 12)
-
-    const updateData = {
-        email:req.body.email,
-        password:hashedPassword
+    const findUser = {
+        email: req.body.email
     }
-    const options = {
-        new: true
-    }
-    userModel.findByIdAndUpdate(req.body._id, updateData, options, (error, result) => {
+    userModel.findOne(findUser, (error, result) => {
         if (error) {
-            res.json({status:false,message:error.message})
+            res.json(error)
         } else {
-            res.send({ data: result,status:true, message: "Updated Password Successfully" })
+            if (result) {
+                // res.json({ message: "Email  Found", data: result, error: false })
+                const hashedPassword = bcrypt.hashSync(req.body.password, 12)
+                const updateData = {
+                    email: req.body.email,
+                    password: hashedPassword
+                }
+                const options = {
+                    new: true
+                }
+                userModel.findByIdAndUpdate(result._id, updateData, options, (error, result) => {
+                    if (error) {
+                        res.json({ status: false, message: error.message })
+                    } else {
+                        res.send({ data: result, status: true, message: "Updated Password Successfully" })
+                    }
+                })
+                // if (bcrypt.compareSync(req.body.password, result.password)) {
+                //     const updateData = {
+                //         isLogin: true
+                //     }
+                //     const options = {
+                //         new: true
+                //     }
+                //     userModel.findByIdAndUpdate(result._id, updateData, options, (error, result) => {
+                //         if (error) {
+                //             res.status(200).json({ data: result, error: true, message: error.message })
+
+                //         } else {
+                //             res.status(200).json({ data: result, error: false, message: "Login Successfully" })
+                //         }
+                //     })
+
+                // } else {
+                //     res.json({ message: "Invalid Password", data: result, error: true })
+                // }
+            } else {
+                res.json({ message: "Email Not Found", data: result, error: true })
+            }
         }
     })
+
+    // const updateData = {
+    //     email: req.body.email,
+    //     password: hashedPassword
+    // }
+    // const options = {
+    //     new: true
+    // }
+    // userModel.findByIdAndUpdate(req.body._id, updateData, options, (error, result) => {
+    //     if (error) {
+    //         res.json({ status: false, message: error.message })
+    //     } else {
+    //         res.send({ data: result, status: true, message: "Updated Password Successfully" })
+    //     }
+    // })
 }
 
 
