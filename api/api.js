@@ -11,6 +11,7 @@ const MsgRoom = require('./Routes/MsgRoom')
 const FAQs = require('./Routes/FAQS')
 const AppUpdates = require('./Routes/AppUpdates')
 const UserSubscription = require('./Routes/UserSubscription')
+const Transaction = require('./Routes/Transactions')
 const Privacy_Policy = require('./Routes/Privacy_Policy')
 const termsAndCondition = require('./Routes/Terms_and_conditions')
 
@@ -25,6 +26,7 @@ router.use('/faqs', FAQs);
 router.use('/AppUpdates', AppUpdates);
 router.use('/UserSubscription', UserSubscription);
 router.use('/Privacy_Policy', Privacy_Policy);
+router.use('/Transactions', Transaction);
 router.use('/Terms_and_conditions', termsAndCondition);
 
 module.exports = router;
