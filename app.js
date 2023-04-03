@@ -41,6 +41,131 @@ app.use('/video-uploads', express.static('video-uploads'))
 
 app.use('/upload-image', require('./api/upload-image'))
 // Stripe 
+// get price list 
+app.get('/config', async (req, res) => {
+  const prices = await stripe.prices.list({
+    // lookup_keys: ['Monthly', 'sample_premium'],
+    expand: ['data.product']
+  });
+
+  res.send({
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+    prices: prices.data,
+  });
+});
+// Create subscription
+app.post("/checkout1", async (req, res) => {
+  const { customer_Id, priceId, cardHolderName,paymentMethod, cvv, cardNumber, expiry, amount, customername, customeremail } = req.body;
+  // create token 
+  // const token = await stripe.tokens.create({
+  //   card: {
+  //     number: cardNumber,
+  //     exp_month: expiry.substring(0, 2),
+  //     exp_year: expiry.substring(3),
+  //     cvc: cvv,
+  //     name: cardHolderName
+  //   },
+  // });
+  // create customer 
+  const customer = await stripe.customers.create({
+    email: customeremail,
+    // source: token.id,
+    name: customername,
+ 
+    // payment_method: paymentMethod,
+    // invoice_settings: {
+    //   default_payment_method: paymentMethod,
+    // },
+  });
+
+  // Save the customer.id in your database alongside your user.
+  // We're simulating authentication with a cookie.
+  // res.cookie('customer', customer.id, { maxAge: 900000, httpOnly: true });
+
+  // res.send({ customer: customer });
+  // ephemeral keys 
+  // Create an ephemeral key for the Customer; this allows the app to display saved payment methods and save new ones
+  const ephemeralKey = await stripe.ephemeralKeys.create(
+    { customer: customer.id },
+    { apiVersion: '2020-08-27' }
+  );
+  // Subscription create 
+  try {
+    const subscription = await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{
+        price: priceId,
+      }],
+      payment_behavior: 'default_incomplete',
+      payment_settings: { save_default_payment_method: 'on_subscription' },
+      expand: ['latest_invoice.payment_intent'],
+    });
+    const subscriptionId = subscription.id
+    const clientSecret = subscription.latest_invoice.payment_intent.client_secret
+    res.send({
+      subscriptionId: subscription.id,
+      clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+    });
+    // Payment intent 
+    // const paymentIntent = await stripe.paymentIntents.create({
+    //   amount,
+    //   currency: 'eur',
+    //   customer: customer.id,
+    //   metadata: {
+    //     subscriptionId: subscription.id,
+    //     reason: 'subscription',
+    //   },
+    //   payment_method_types: [
+    //     'card',
+    //     'sepa_debit',
+    //   ],
+    // });
+    // res.json({paymentIntent})
+  
+
+    // const paymentIntent = await stripe.paymentIntents.create({
+    //   amount: amount,
+    //   currency: "usd",
+    //   // name:customername,
+    //   customer: customer.id,
+    //   payment_method_types: ['card'],
+    //   payment_method: 'pm_card_visa',
+    //   confirm: true,
+    // });
+    // console.log('response:', res)
+    // // Send the object keys to the client
+    // console.log('payment:', paymentIntent)
+    Transaction  
+    const Transaction = new TransactionModel({
+      _id: mongoose.Types.ObjectId(),
+      user_Id: customer_Id,
+      user_email: customeremail,
+      userName: customername,
+      // paymentIntent_Secret: paymentIntent.id,
+      customer_Stripe_Id: customer.id,
+      ephemeralKey: ephemeralKey.secret,
+      amount: amount,
+      // client_secret: paymentIntent.client_secret,
+      paymentStatus: 'succeeded',
+      priceId: priceId,
+      subscriptionId: subscriptionId,
+      clientSecretSubscription: clientSecret
+
+
+    });
+    Transaction.save((error, result) => {
+      if (error) {
+        res.status(200).json({ result: error, error: true, message: "Error Creating Transaction", statusCode: 200 })
+      } else {
+        res.status(200).json({ result: result, error: false, message: "Created Successfully", statusCode: 200 })
+        // res.sendStatus(200)
+      }
+    })
+  } catch (error) {
+    return res.status(400).send({ error: { message: error.message } });
+  }
+
+});
 app.post("/checkout", async (req, res) => {
   const { customer_Id, cardHolderName, cvv, cardNumber, expiry, amount, customername, customeremail } = req.body;
   console.log('cus here', customer_Id, customername, customeremail, cardHolderName, cvv, cardNumber, expiry, amount, expiry.substring(0, 2))
@@ -133,28 +258,28 @@ app.post("/refund_payment", async (req, res) => {
     try {
       console.log(foundResult[0]._id)
       const updateData = {
-      
-        paymentStatus:'refund'
 
-    }
-    const options = {
+        paymentStatus: 'refund'
+
+      }
+      const options = {
         new: true
-    }
-    TransactionModel.findByIdAndUpdate(foundResult[0]._id, updateData, options, (error, result) => {
+      }
+      TransactionModel.findByIdAndUpdate(foundResult[0]._id, updateData, options, (error, result) => {
         if (error) {
-            res.status(200).json({ result: result, error: false, message: error.message, statusCode: 200 })
+          res.status(200).json({ result: result, error: false, message: error.message, statusCode: 200 })
 
         } else {
-            res.status(200).json({ result: result, error: false, message: "Updated Successfully", statusCode: 200 })
+          res.status(200).json({ result: result, error: false, message: "Updated Successfully", statusCode: 200 })
 
         }
-    })
-        // res.status(200).json({ result: foundResult, error: false, message: "Get Data Successfully", statusCode: 200 })
+      })
+      // res.status(200).json({ result: foundResult, error: false, message: "Get Data Successfully", statusCode: 200 })
 
     } catch (err) {
-        res.status(200).json({ result: err, error: true, message: "Not getting Data", statusCode: 200 })
+      res.status(200).json({ result: err, error: true, message: "Not getting Data", statusCode: 200 })
     }
-})
+  })
 });
 
 
