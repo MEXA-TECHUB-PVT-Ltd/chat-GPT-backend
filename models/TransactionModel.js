@@ -16,6 +16,9 @@ const transactionSchema = new mongoose.Schema({
         type: String,
         enum: ['succeeded','refund']
     },
+    priceId:String,
+    subscriptionId:String,
+    clientSecretSubscription:String
 }
 );
 module.exports = mongoose.model("transaction", transactionSchema);

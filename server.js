@@ -19,8 +19,6 @@ const app = require('./app');
 // Connect the database
 mongoose.connect(database, {
     useNewUrlParser: true,
-    // useCreateIndex: true,
-    // useFindAndModify: false,
     useUnifiedTopology:true,
 }).then(con => {
     console.log('=====>>DB connection Successfully!');
