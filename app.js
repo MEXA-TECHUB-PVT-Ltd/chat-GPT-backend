@@ -89,8 +89,16 @@ app.get('/get-all-pricing', async (req, res) => {
 // Create subscription
 app.post("/checkout1", async (req, res) => {
   const { customer_Id, priceId, customeremail } = req.body;
-  
-  // create customer 
+  // get pricing 
+  const prices=stripe.prices.retrieve(
+    priceId,
+    async function(err, price) {
+      if (err) {
+        res.json({message:'Error retrieving price:', error:err});
+      } else {
+        // res.json('Price retrieved:', price);
+        let pricing_obj=price.unit_amount
+ // create customer 
   const customer = await stripe.customers.create({
     email: customeremail,
   });
@@ -124,10 +132,12 @@ app.post("/checkout1", async (req, res) => {
       ephemeralKey: ephemeralKey.secret,
       paymentStatus: 'succeeded',
       priceId: priceId,
+      amount:pricing_obj,
       subscriptionId: subscriptionId,
       clientSecretSubscription: clientSecret,
       startingdate:DateData.toISOString(),
-      freeTrialEndDate:EndDate.toISOString()
+      freeTrialEndDate:EndDate.toISOString(),
+
 
     });
     Transaction.save((error, result) => {
@@ -141,12 +151,20 @@ app.post("/checkout1", async (req, res) => {
   } catch (error) {
     return res.status(400).send({ error: { message: error.message } });
   }
+
+      }
+    }
+  );
+  
+  // res.json(prices)
+ 
 });
 app.post("/get-refund-user-data", async (req, res) => {
   const user_Id = req.body.user_Id;
   TransactionModel.find({ user_Id: user_Id,status:'succeeded'}, function (err, foundResult) {
       try {
-          res.status(200).json({ result: foundResult[0], error: false, message: "Get Data Successfully", statusCode: 200 })
+        let ResultData=foundResult.reverse()
+          res.status(200).json({ result: ResultData[0], error: false, message: "Get Data Successfully", statusCode: 200 })
       } catch (err) {
           res.status(200).json({ result: err, error: true, message: "Not getting Data", statusCode: 200 })
       }
