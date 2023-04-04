@@ -20,7 +20,8 @@ const transactionSchema = new mongoose.Schema({
     subscriptionId:String,
     clientSecretSubscription:String,
     startingdate:String,
-    freeTrialEndDate:String
+    freeTrialEndDate:String,
+    
 
 }
 );
