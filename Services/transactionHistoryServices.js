@@ -54,7 +54,6 @@ exports.deleteTransaction = (req, res) => {
 exports.deleteTransactionAll = (req, res) => {
     TransactionModel.deleteMany({}, (error, result) => {
         if (error) {
-            res.send(error)
             res.status(200).json({ result: error, error: true, message: "Some Error ", statusCode: 200 })
 
         } else {

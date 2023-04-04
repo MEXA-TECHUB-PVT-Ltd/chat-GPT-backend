@@ -222,7 +222,7 @@ exports.createuser = async (req, res) => {
 // Update 
 exports.updateuser = async (req, res) => {
     const findUser = {
-        email: req.body.email
+        email: req.body.email,
     }
     userModel.findOne(findUser, (error, result) => {
         if (error) {
@@ -290,7 +290,7 @@ exports.updateuser = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     const updateData = {
         verified_status: req.body.verified_status,
-        subscriptionPlan:req.body.subscriptionPlan
+        subscription_plan:req.body.subscription_plan
     }
     const options = {
         new: true
