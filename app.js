@@ -113,7 +113,8 @@ app.post("/checkout1", async (req, res) => {
     const subscriptionId = subscription.id
     const clientSecret = subscription.latest_invoice.payment_intent.client_secret
     const clientpaymentIntentId = subscription.latest_invoice.payment_intent.id
-
+    const DateData=new Date()
+    const EndDate = new Date(DateData.getTime() + 3 * 24 * 60 * 60 * 1000);
     const Transaction = new TransactionModel({
       _id: mongoose.Types.ObjectId(),
       user_Id: customer_Id,
@@ -124,7 +125,9 @@ app.post("/checkout1", async (req, res) => {
       paymentStatus: 'succeeded',
       priceId: priceId,
       subscriptionId: subscriptionId,
-      clientSecretSubscription: clientSecret
+      clientSecretSubscription: clientSecret,
+      startingdate:DateData.toISOString(),
+      freeTrialEndDate:EndDate.toISOString()
 
     });
     Transaction.save((error, result) => {
@@ -138,6 +141,16 @@ app.post("/checkout1", async (req, res) => {
   } catch (error) {
     return res.status(400).send({ error: { message: error.message } });
   }
+});
+app.post("/get-refund-user-data", async (req, res) => {
+  const user_Id = req.body.user_Id;
+  TransactionModel.find({ user_Id: user_Id,status:'succeeded'}, function (err, foundResult) {
+      try {
+          res.status(200).json({ result: foundResult[0], error: false, message: "Get Data Successfully", statusCode: 200 })
+      } catch (err) {
+          res.status(200).json({ result: err, error: true, message: "Not getting Data", statusCode: 200 })
+      }
+  })
 });
 app.post("/refund_payment", async (req, res) => {
   const { clientSecret, amount } = req.body;
@@ -197,50 +210,8 @@ app.post("/refund_payment", async (req, res) => {
     console.error(error);
   });
 
-  // const refund = await stripe.refunds.create({
-  //   payment_intent: clientSecret,
-  //   amount: amount
-  // });
-  // res.json(refund)
-  // TransactionModel.find({ paymentIntent_Secret: clientSecret }, function (err, foundResult) {
-  //   try {
-  //     console.log(foundResult[0]._id)
-  //     const updateData = {
-
-  //       paymentStatus: 'refund'
-
-  //     }
-  //     const options = {
-  //       new: true
-  //     }
-  //     TransactionModel.findByIdAndUpdate(foundResult[0]._id, updateData, options, (error, result) => {
-  //       if (error) {
-  //         res.status(200).json({ result: result, error: false, message: error.message, statusCode: 200 })
-
-  //       } else {
-  //         res.status(200).json({ result: result, error: false, message: "Updated Successfully", statusCode: 200 })
-
-  //       }
-  //     })
-  //     // res.status(200).json({ result: foundResult, error: false, message: "Get Data Successfully", statusCode: 200 })
-
-  //   } catch (err) {
-  //     res.status(200).json({ result: err, error: true, message: "Not getting Data", statusCode: 200 })
-  //   }
-  // })
 });
 
-
-// app.get('/admin',function(req,res) {
-//   // res.send('../Services/helloWorld.html');
-//   res.sendFile(path.join(__dirname+'/helloWorld.html'));
-// });
-// app.get("/hello", (req, res) => {
-//   res.send("hello", { title: "Hey", message: "Hello there!" });
-//   // readAndServe("./Services/helloWorld.html",res) 
-// });
-// app.use('/static', express.static(path.join(__dirname, 'public')))
-// app.use('/admin', res.sendFile('./Services/helloWorld.html'))
 
 app.use('/upload-video', require('./api/upload-video'))
 app.use('/upload-multiple-images', require('./api/upload-multiple-images'))
