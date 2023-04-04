@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
     password: String,
     isLogin:Boolean,
     verified_status:Boolean,
+    subscription_plan:String
     
     // subscription_plan:{
 
