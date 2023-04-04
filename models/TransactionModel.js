@@ -18,7 +18,10 @@ const transactionSchema = new mongoose.Schema({
     },
     priceId:String,
     subscriptionId:String,
-    clientSecretSubscription:String
+    clientSecretSubscription:String,
+    startingdate:String,
+    freeTrialEndDate:String
+
 }
 );
 module.exports = mongoose.model("transaction", transactionSchema);

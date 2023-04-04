@@ -64,6 +64,8 @@ exports.deleteTransactionAll = (req, res) => {
 }
 // Create 
 exports.createTransaction = async (req, res) => {
+    const DateData=new Date()
+const EndDate = new Date(DateData.getTime() + 3 * 24 * 60 * 60 * 1000);
     const Transaction = new TransactionModel({
         _id: mongoose.Types.ObjectId(),
         user_Id: req.body.user_Id,
@@ -74,8 +76,9 @@ exports.createTransaction = async (req, res) => {
         amount:req.body.amount,
         user_email:req.body.user_email,
         client_secret:req.body.client_secret,
-        paymentStatus:req.body.paymentStatus
-       
+        paymentStatus:req.body.paymentStatus,
+        startingdate:DateData.toISOString(),
+        freeTrialEndDate:EndDate.toISOString()
 
     });
     Transaction.save((error, result) => {
