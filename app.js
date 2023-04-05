@@ -10,6 +10,8 @@ const userRoutes = require('./api/api');
 const globalErrHandler = require('./utils/errorController');
 const AppError = require('./utils/appError');
 const TransactionModel = require("./models/TransactionModel");
+const userModel = require("./models/userModel");
+
 const mongoose = require("mongoose");
 const path = require('path');
 var Publishable_Key = process.env.Publishable_Key
@@ -86,6 +88,33 @@ app.get('/get-all-pricing', async (req, res) => {
   });
 
 });
+// get price list 
+app.post('/check-subscription', async (req, res) => {
+  const subscriptions = await stripe.subscriptions.list({
+    customer: req.body.customer_Stripe_Id,
+    limit: 1,
+  });
+ 
+  const subscription = subscriptions.data[0];
+
+  if (subscription.status === 'active') {
+    res.json({message:'Subscription is active!',status:true});
+  } else {
+    res.json({message:'Subscription is not active!',status:false});
+  }
+
+});
+// Cancel 
+app.post('/cancel-subscription', async (req, res) => {
+  const updatedSubscription = await stripe.subscriptions.update(
+    req.body.subscription_id,
+    {
+      cancel_at_period_end: true,
+    }
+  );
+  res.json({message:'Subscription canceled at the end of the billing period:', data:updatedSubscription});
+
+});
 // Create subscription
 app.post("/checkout1", async (req, res) => {
   const { customer_Id, priceId, customeremail } = req.body;
@@ -144,6 +173,30 @@ app.post("/checkout1", async (req, res) => {
       if (error) {
         res.status(200).json({ result: error, error: true, message: "Error Creating Transaction", statusCode: 200 })
       } else {
+        const updateData = {
+          customer_Stripe_id:result.customer_Stripe_Id,
+          subscription:{
+            subscription_plan_id:result.subscriptionId,
+            pricing_selected:result.priceId,
+            clientSecretSubscription:result.clientSecretSubscription,
+            startingdate:result.startingdate,
+            freeTrialEndDate:result.freeTrialEndDate,
+            customer_Stripe_id:result.customer_Stripe_Id,
+          }
+         
+      }
+      const options = {
+          new: true
+      }
+      userModel.findByIdAndUpdate(customer_Id, updateData, options, (error, result) => {
+          if (error) {
+              // res.status(200).json({ result: result, error: false, message: error.message, statusCode: 200 })
+  
+          } else {
+              // res.status(200).json({ result: result, error: false, message: "Updated Successfully", statusCode: 200 })
+  
+          }
+      })
         res.status(200).json({ result: result, error: false, message: "Created Successfully", statusCode: 200 })
         // res.sendStatus(200)
       }

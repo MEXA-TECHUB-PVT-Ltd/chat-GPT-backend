@@ -2,6 +2,10 @@ const userModel = require("../models/userModel");
 const mongoose = require("mongoose");
 const bcrypt = require('bcrypt');
 var nodemailer = require('nodemailer')
+var Secret_Key = process.env.Secret_Key
+
+const stripe = require('stripe')(Secret_Key)
+
 // Get All user 
 exports.getAllusers = (req, res) => {
     userModel.find({}, (error, result) => {
@@ -16,9 +20,54 @@ exports.getAllusers = (req, res) => {
 exports.getUserById = (req, res) => {
 
     const userId = req.params.userId;
-    userModel.find({ _id: userId }, function (err, foundResult) {
+    userModel.find({ _id: userId }, async function (err, foundResult) {
         try {
-            res.status(200).json({ result: foundResult, error: false, message: "Get Data Successfully", statusCode: 200 })
+            let Array=foundResult[0];
+            // res.json(Array)
+
+            if(foundResult[0].customer_Stripe_id===null||foundResult[0].customer_Stripe_id===undefined){
+                Array.subscription_status='non active'
+
+            res.status(200).json({ result: Array, error: false, message: "Get Data Successfully", statusCode: 200 })
+
+            }else{
+                let customerStripeId=foundResult[0].customer_Stripe_id
+                const subscriptions = await stripe.subscriptions.list({
+                    customer: customerStripeId,
+                    limit: 1,
+                  });
+                //   res.json(subscriptions)
+                  if(subscriptions.data.length===0){
+                Array.subscription_status='non active'
+
+                     res.status(200).json({ result:foundResult[0] , error: false, message: "Get Data Successfully", statusCode: 200 })
+
+                  }else{
+                         const subscription = subscriptions.data[0];
+                  console.log(subscription.status)
+                  if (subscription.status === 'active') {
+                    Array.subscription_status='active'
+                     res.status(200).json({ result: Array, error: false, message: "Get Data Successfully", statusCode: 200 })
+                  } else if(subscription.status === 'unpaid'){
+                    Array.subscription_status='unpaid'
+                    res.status(200).json({ result: Array, error: false, message: "Get Data Successfully", statusCode: 200 })
+                  } else if(subscription.status === 'past_due'){
+                    Array.subscription_status='past_due'
+                    res.status(200).json({ result: Array, error: false, message: "Get Data Successfully", statusCode: 200 })
+                  }else if(subscription.status === 'canceled'||subscription.status === 'incomplete'){
+                    Array.subscription_status='canceled'
+                    res.status(200).json({ result: Array, error: false, message: "Get Data Successfully", statusCode: 200 })
+                  }else if(subscription.status === 'trialing'){
+                    Array.subscription_status='trialing'
+                    res.status(200).json({ result: Array, error: false, message: "Get Data Successfully", statusCode: 200 })
+                  }else{
+                    Array.subscription_status='non active'
+
+                    res.status(200).json({ result: Array, error: false, message: "Get Data Successfully", statusCode: 200 })
+                  }
+                  }
+           
+            }
 
         } catch (err) {
             res.status(200).json({ result: err, error: true, message: "Not getting Data", statusCode: 200 })
@@ -200,7 +249,8 @@ exports.createuser = async (req, res) => {
                     password: hashedPassword,
                     isLogin: false,
                     verified_status: false,
-                    subscriptionPlan:req.body.subscriptionPlan
+                    subscriptionPlan:req.body.subscriptionPlan,
+                    subscription_plan_id:req.body.subscription_plan_id
 
                 });
                 user.save((error, result) => {
@@ -290,7 +340,9 @@ exports.updateuser = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     const updateData = {
         verified_status: req.body.verified_status,
-        subscription_plan:req.body.subscription_plan
+        subscription_plan:req.body.subscription_plan,
+        subscription_plan_id:req.body.subscription_plan_id
+
     }
     const options = {
         new: true
